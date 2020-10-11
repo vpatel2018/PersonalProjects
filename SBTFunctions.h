@@ -629,6 +629,8 @@ void rebalance(struct TreeNode * node) {
     
 }
 
+//insert a value in a tree
+//to call this function, use insert(&(pointer to root of tree), value to insert)
 void insert(struct TreeNode ** root, int value) {
     
     if((*(root)) == nullptr) {
@@ -696,6 +698,8 @@ void insert(struct TreeNode ** root, int value) {
     
 }
 
+//delete a value from tree
+//to call this function, use del(&(pointer to root of tree), value to delete)
 void del(struct TreeNode ** root, int value) {
     
     struct TreeNode * node = (*(root));
