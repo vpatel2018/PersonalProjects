@@ -14,6 +14,18 @@ using namespace std;
 /* This serves as a procedural driver code for auto UML generator.
    The file uses the Parser and Graphics class extensively.*/
 
+/* 
+STEPS
+1. Compile visual.cpp using the command "g++ visual.cpp -lSDL2 -lSDL2_image -lSDL2_ttf".
+2. Suppose we want to use three python files that have classes. 
+Suppose the names of the python files are "a.py", "b.py" and "c.py". 
+Suppose the path to "a.py" is "/Users/vihanpatel/desktop/a.py". 
+Suppose the path to "b.py" is "/Users/vihanpatel/desktop/b.py". 
+Suppose the path to "c.py" is "/Users/vihanpatel/desktop/c.py". 
+If we want to see a UML diagram with information about those classes, 
+use the command "./a.out /Users/vihanpatel/desktop/a.py /Users/vihanpatel/desktop/b.py /Users/vihanpatel/desktop/c.py". 
+Make sure all the files you use have classes in them. */
+
 const int fontSize = 11;
 int incConst = 8;
 
