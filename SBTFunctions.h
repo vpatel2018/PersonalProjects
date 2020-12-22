@@ -9,6 +9,9 @@
 #include <iomanip>
 using namespace std;
 
+/* This file contains functions for my self balancing tree project.
+   You need to only use the del and insert functions. */
+
 struct TreeNode{
     int integer;
     int times;
@@ -18,7 +21,6 @@ struct TreeNode{
     int lf;
     int rf;
 };
-
 
 void updateHeight(struct TreeNode ** node) {
     
