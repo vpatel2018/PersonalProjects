@@ -25,6 +25,7 @@ class Parser {
   private:
 
    void noMLComments(string type, vector<string> &allLines);
+   bool hasChars(string word);
    string trim(string word);
    int firstCharPlace(string& word);
    vector<string> parse(string& fileName);
@@ -41,6 +42,24 @@ class Parser {
    vector< string > topClasses(vector<string> files);
    
 };
+
+bool Parser::hasChars(string word) {
+    
+    int chars = 0;
+    
+    for(int vihan = 0; vihan < word.size(); vihan++) {
+        if(!isspace(word[vihan])) {
+            chars++;
+        }
+    }
+    
+    if(chars > 0) {
+        return true;
+    }
+    
+    return false;
+    
+}
 
 vector<vector<string> > Parser::inheritance(vector<string> list) {
   
@@ -244,10 +263,12 @@ vector<vector<string> > Parser::composition(vector<string> list) {
             taker.push_back(classes[c][0]);
             taker.push_back(classes[c][p]);
             for(int y = p + 1; y < classes[c].size(); y++) {
-                if(firstCharPlace(classes[c][y]) <= firstCharPlace(classes[c][p])) {
-                    break;
-                }else if(trim(classes[c][y]).find("self.") == 0 && classes[c][y].find("=") != string::npos){
-                    taker.push_back(classes[c][y]);
+                if(hasChars(classes[c][y]) == true && hasChars(classes[c][p]) == true) {
+                    if(firstCharPlace(classes[c][y]) <= firstCharPlace(classes[c][p])) {
+                        break;
+                    }else if(trim(classes[c][y]).find("self.") == 0 && classes[c][y].find("=") != string::npos){
+                        taker.push_back(classes[c][y]);
+                    }  
                 }
             }
             classes[c] = taker;
@@ -494,7 +515,9 @@ vector<vector<string> > Parser::getInfo(vector<string> list, vector<string> file
             if(position != -1) {
               line += classes[k][j];
               for(int e = j + 1; e <= position; e++) {
-                line += classes[k][e].substr(firstCharPlace(classes[k][e]), classes[k][e].length() - firstCharPlace(classes[k][e]));
+                if(hasChars(classes[k][e]) == true) {
+                    line += classes[k][e].substr(firstCharPlace(classes[k][e]), classes[k][e].length() - firstCharPlace(classes[k][e]));
+                }
               }
               classes[k][j] = line;
               for(int u = j + 1; u <= position; u++) {
@@ -546,13 +569,15 @@ vector<vector<string> > Parser::getInfo(vector<string> list, vector<string> file
           classes[k][j] = classes[k][j] + classes[k][j+1];
           int location = classes[k][j].find("\\");
           string word = classes[k][j].substr(location + 1);
-          word = word.substr(firstCharPlace(word));
-          classes[k][j] = classes[k][j].substr(0, location) + word;
-          classes[k].erase(classes[k].begin() + (j+1));
+          if(hasChars(word) == true) {
+            word = word.substr(firstCharPlace(word));
+            classes[k][j] = classes[k][j].substr(0, location) + word;
+            classes[k].erase(classes[k].begin() + (j+1));
+          }
         }
       }
     }
-        
+    
     vector<vector<string> > classInfo;
     
     //extract the UML info of all files given in parameter
@@ -945,7 +970,7 @@ vector<vector<string> > Parser::aggregation(vector<string> list, vector<string> 
   vector<vector<string> > pieces = getInfo(list, files, classes, true);
   vector<vector<string> > components;
   vector<vector<int> > defs;
-        
+
   //store all the statements regarding the instance variables in each class
   for(int k = 0; k < classes.size(); k++) {
     vector<string> instances;
@@ -961,7 +986,7 @@ vector<vector<string> > Parser::aggregation(vector<string> list, vector<string> 
     }
     int last = -1;
     for(int y = pos + 1; y < classes[k].size(); y++) {
-      if(firstCharPlace(classes[k][y]) == classes[k][y].find("def ")) {
+      if(hasChars(classes[k][y]) == true && firstCharPlace(classes[k][y]) == classes[k][y].find("def ")) {
         last = y;
         break;
       }else if(trim(classes[k][y]).find("self.") == 0 && classes[k][y].find("=") != string::npos){
@@ -1211,7 +1236,9 @@ vector<vector<string> > Parser::aggregation(vector<string> list, vector<string> 
   for(int j = 0; j < extracts.size(); j++) {
     if(extracts[j][1].find(" ") != string::npos) {
       extracts[j][1] = extracts[j][1].substr(extracts[j][1].find(" "));
-      extracts[j][1] = extracts[j][1].substr(firstCharPlace(extracts[j][1]));
+      if(hasChars(extracts[j][1]) == true) {
+         extracts[j][1] = extracts[j][1].substr(firstCharPlace(extracts[j][1]));   
+      }
     }
   }
     
@@ -1380,7 +1407,7 @@ vector<vector<string> > Parser::aggregation(vector<string> list, vector<string> 
       }
     }
   }
-        
+  
   for(int x = 0; x < extracts.size(); x++) {
     vector<string> extras;
     for(int y = 1; y < extracts[x].size(); y++) {
@@ -1399,7 +1426,7 @@ vector<vector<string> > Parser::aggregation(vector<string> list, vector<string> 
         }
       }
       for(int z = pos + 1; z < classes[position].size(); z++) {
-        if(firstCharPlace(classes[position][z]) == classes[position][z].find("def ")) {
+        if(hasChars(classes[position][z]) == true && firstCharPlace(classes[position][z]) == classes[position][z].find("def ")) {
           break;
         }else if(trim(classes[position][z]).find("self.") == 0 && classes[position][z].find("=") != string::npos){
           string line = classes[position][z].substr(0, classes[position][z].find("="));
@@ -1924,12 +1951,12 @@ vector<vector<string> > Parser::aggregation(vector<string> list, vector<string> 
 }
 
 vector<vector<string> > Parser::association(vector<string> list, vector<string> files) {
-        
+
   vector<vector<string> > classes;
   vector<vector<string> > pieces = getInfo(list, files, classes);
   vector<vector<string> > magnitudes = magnitude(list);
   vector<vector<string> > components;
-        
+  
   for(int q = 0; q < classes.size(); q++) {
     for(int e = 1; e < classes[q].size(); e++) {
       if(!(classes[q][e].find("def ") != string::npos && trim(classes[q][e]).find("def") == 0)) {
@@ -2318,7 +2345,7 @@ int Parser::firstCharPlace(string& word) {
    while(isspace(word.at(index))) {
      index++;
    }
-
+   
    return index;
 }
 
@@ -2369,58 +2396,76 @@ vector<string> Parser::parse(string& fileName) {
 
 vector<string> Parser::pass(vector<string> &list) {
 
-   vector<string> acceptable;
-
-   for(int k = 0; k < list.size(); k++) {
-
-     if(list[k].find("class ") != string::npos && trim(list[k]).find("class") == 0) {
-	   acceptable.push_back(list[k]);
-
-   	   int position = -1;
-
-	   for(int j = k + 1; j < list.size(); j++) {
-	    if(trim(list[j]).find("def") == 0 && list[j].find("def ") != string::npos) {
-	      position = int(list[j].find("def "));
-	      break;
-	    }
-	   }
-
-	   for(int e = k + 1; e < list.size(); e++) {
-	    if(list[e].find(":") == string::npos && list[e].find("=") != string::npos) {
-	      if(firstCharPlace(list[e]) == position) {
-	        acceptable.push_back(list[e]);
-	      }
-	    }else if(firstCharPlace(list[e]) <= list[k].find("class")) {
-	      break;
-	    }
-	   }
-
-     }else if(list[k].find("def ") != string::npos && trim(list[k]).find("def") == 0) {
-
-	   if(trim(list[k]).find("_init_") != string::npos) {
-          for(int j = k + 1; j < list.size(); j++) {
-            if(list[j].find("self.") != string::npos && trim(list[j]).find("self.") == 0 && list[j].find("=") != string::npos) {
-              string instanceVar = list[j].substr(0, list[j].find("="));
-              instanceVar = trim(instanceVar);
-              acceptable.push_back(instanceVar);
-            }else if(firstCharPlace(list[j]) <= firstCharPlace(list[k])) {
-              break;
-            }
-          }
+    vector<string> acceptable;
+    int pos = -1;
+    
+    for(int k = 0; k < list.size(); k++) {
+        if(list[k].find("class ") != string::npos && trim(list[k]).find("class") == 0) {
+            pos = list[k].find("class ");
+            break;
         }
-         
-       acceptable.push_back(list[k]);
+    }
+    
+    if(pos != -1) {
+        vector<int> places;
+        for(int k = 0; k < list.size(); k++) {
+            if(list[k].find("class ") <= pos) { //if needed, add "|| list[k].find("@") <= pos" to this if statement in future
+                places.push_back(k);
+            }
+        }
+        places.push_back(list.size());
+        for(int k = 0; k < places.size() - 1; k++) {
+            int start = places[k] + 1;
+            int end = places[k + 1] - 1;
+            int index = -1;
+            for(int f = start; f <= end; f++) {
+                if(hasChars(list[f]) == true && firstCharPlace(list[f]) <= pos) {
+                   index = f;
+                   break;
+                }
+            }
+            if(index != -1) {
+                for(int f = index; f <= end; f++) {
+                    list[f] = "";
+                }
+            }
+        }
+        vector<string> nonBlankLines;
+        for(int k = 0; k < list.size(); k++) {
+            if(list[k].length() > 0) {
+                nonBlankLines.push_back(list[k]);
+            }
+        }
+        list = nonBlankLines;
+        for(int k = 0; k < list.size(); k++) {
+            if(list[k].find("class ") <= pos && trim(list[k]).find("class") == 0) {
+                acceptable.push_back(list[k]);
+                //if needed, add more code here in the future
+            }else if(list[k].find("def ") != string::npos && trim(list[k]).find("def") == 0) {
+                 if(trim(list[k]).find("_init_") != string::npos) {
+                   for(int j = k + 1; j < list.size(); j++) {
+                     if(list[j].find("self.") != string::npos && trim(list[j]).find("self.") == 0 && list[j].find("=") != string::npos) {
+                       string instanceVar = list[j].substr(0, list[j].find("="));
+                       instanceVar = trim(instanceVar);
+                       acceptable.push_back(instanceVar);
+                     }else if(hasChars(list[j]) == true && firstCharPlace(list[j]) <= firstCharPlace(list[k])) {
+                       break;
+                     }
+                   }
+                 }
+                 acceptable.push_back(list[k]);
+            }else if(list[k].find("@") != string::npos && trim(list[k]).find("@") == 0) {
+                 acceptable.push_back(list[k]);
+            }else if(list[k].find("__metaclass__") != string::npos && list[k].find("=") != string::npos && list[k].find("ABCMeta") != string::npos) {
+                 acceptable.push_back(list[k]);
+            }else if(trim(list[k]) == "pass;" || trim(list[k]) == "pass") {
+                 acceptable.push_back(list[k]);
+            }
+        }
+    }
 
-     }else if(list[k].find("@") != string::npos && trim(list[k]).find("@") == 0) {
-	   acceptable.push_back(list[k]);
-     }else if(list[k].find("__metaclass__") != string::npos && list[k].find("=") != string::npos && list[k].find("ABCMeta") != string::npos) {
-	   acceptable.push_back(list[k]);
-     }else if(trim(list[k]) == "pass;" || trim(list[k]) == "pass") {
-	   acceptable.push_back(list[k]);
-     }
-   }
-
-   return acceptable;
+    return acceptable;
+    
 }
 
 vector< vector<string> > Parser::UMLinfo(string& fileName) {
@@ -2442,52 +2487,6 @@ vector< vector<string> > Parser::UMLinfo(string& fileName) {
         }
         classes.push_back(subset);
       }
-    }
-    
-    // $$$$$$$$$$$$$$$ //
-    for(int f = 0; f < classes.size(); f++) {
-        int p1 = -1;
-        for(int k = 0; k < classes[f][0].size(); k++) {
-            if(classes[f][0].substr(k, 1) != " ") {
-                p1 = k;
-                break;
-            }
-        }
-        int index = -1;
-        for(int k = classes[f].size() - 1; k >= 0; k--) {
-            int first = 0;
-            for(int u = 0; u < classes[f][k].size(); u++) {
-                if(classes[f][k].substr(u, 1) != " ") {
-                    first = u;
-                    break;
-                }
-            }
-            if(first > p1) {
-                index = k;
-                break;
-            }
-        }
-        if(index != -1) {
-            for(int k = index + 1; k < classes[f].size(); k++) {
-                int first = 0;
-                for(int u = 0; u < classes[f][k].size(); u++) {
-                    if(classes[f][k].substr(u, 1) != " ") {
-                        first = u;
-                        break;
-                    }
-                }
-                if(first <= p1) {
-                    classes[f][k] = "";
-                }
-            }
-        }
-        vector<string> items;
-        for(int k = 0; k < classes[f].size(); k++) {
-            if(classes[f][k].length() > 0) {
-                items.push_back(classes[f][k]);
-            }
-        }
-        classes[f] = items;
     }
         
     for(int k = 0; k < classes.size(); k++) {
@@ -2561,7 +2560,6 @@ vector< vector<string> > Parser::UMLinfo(string& fileName) {
           int index = int(line.find("ABCMeta"));
           int place = int(line.find("(ABC)"));
           if(index != string::npos || place != string::npos) {
-            //modify classes[k][v]
             if(classes[k][v].find("\e[3m") == string::npos) {
               classes[k][v] = "\e[3m" + classes[k][v] + "\e[0m";
             }
@@ -2588,7 +2586,9 @@ vector< vector<string> > Parser::UMLinfo(string& fileName) {
     
     for(int q = 0; q < classes.size(); q++) {
       for(int d = 0; d < classes[q].size(); d++) {
-        classes[q][d] = classes[q][d].substr(firstCharPlace(classes[q][d]));
+        if(hasChars(classes[q][d]) == true) {
+           classes[q][d] = classes[q][d].substr(firstCharPlace(classes[q][d]));   
+        }
       }
     }
     
@@ -2663,7 +2663,7 @@ vector<vector<string> > Parser::relations(vector<string> fileNames) {
         UMLpieces.push_back(part);
       }
     }
-        
+    
     for(int k = 0; k < fileNames.size(); k++) {
       vector<string> parsedList = parse(fileNames[k]);
       list.push_back(parsedList);
@@ -2674,7 +2674,7 @@ vector<vector<string> > Parser::relations(vector<string> fileNames) {
     for(int k = 0; k < files.size(); k++) {
       files[k] = files[k].substr(0,files[k].find(".py"));
     }
-        
+    
     for(int e = 0; e < list.size(); e++) {
       vector<string> sub = list[e];
       vector<string> extraFiles;
@@ -2761,7 +2761,7 @@ vector<vector<string> > Parser::relations(vector<string> fileNames) {
         }
       }
     }
-        
+    
     for(int e = 0; e < list.size(); e++) {
       for(int f = 0; f < list[e].size(); f++) {
         if(list[e][f] == "") {
@@ -2793,7 +2793,7 @@ vector<vector<string> > Parser::relations(vector<string> fileNames) {
              start = pos;
            }
            for(int y = start; y < list[f].size(); y++) {
-             if(firstCharPlace(list[f][y]) == levelC) {
+             if(hasChars(list[f][y]) == true && firstCharPlace(list[f][y]) == levelC) {
                if(list[f][y].find("class ") == string::npos) {
                  for(int r = y; r < list[f].size(); r++) {
                    if(list[f][r].find("class ") == levelC) {
@@ -2813,7 +2813,7 @@ vector<vector<string> > Parser::relations(vector<string> fileNames) {
           }
         }
     }
-        
+    
     vector<vector<string> > relationships;
     
     for(int k = 0; k < list.size(); k++) {
@@ -2825,7 +2825,7 @@ vector<vector<string> > Parser::relations(vector<string> fileNames) {
         relationships.push_back(er[y]);
       }
     }
-        
+    
     for(int k = 0; k < list.size(); k++) {
       vector<vector<string> > er = composition(list[k]);
       for(int g = 0; g < er.size(); g++) {
@@ -2954,7 +2954,7 @@ vector<string> Parser::topClasses(vector<string> files) {
 vector< vector<string> > Parser::UMLdata(vector<string> fileNames) {
     
     vector< string > firstClasses = topClasses(fileNames);
-        
+    
     //rearranging this UMLinfo structure to make sure firstClasses always comes first
     
     vector< vector<string> > allInfo;
