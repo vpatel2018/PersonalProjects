@@ -686,7 +686,6 @@ int main(int argc, char * argv[]) {
     
     system("rm temp.txt");
     system("rm temp.png");
-    system("rm temp");
     
     if(screenHeight == 0 || screenWidth == 0) {
         return 0;
