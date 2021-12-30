@@ -6,6 +6,10 @@ import random
 import math
 import sys
 
+# AUTHOR: VIHAN PATEL
+# THIS FILE PROVIDES FUNCTIONS NEEDED TO FORECAST PERFORMANCE OF SYSTEMS INCLUDING TEXT CLASSIFICATION SYSTEMS (ex. Support Vector Machines)
+# YOU ONLY NEED TO USE THE LAST TWO FUNCTIONS WRITTEN IN THIS FILE
+
 # NOTE: YOU NEED ALL THE EQUATIONS BELOW
 
 def lc_model1(x, a, b, c):
@@ -284,7 +288,7 @@ def get_best_equation(xValues, yValues):
         
 #
 
-# inputVal = some number in interval (0,1)
+# inputVal = some number
 # best_equation = output of get_best_equation(xValues, yValues)
 # this function is good
 def evaluate(inputVal, best_equation):
