@@ -223,6 +223,8 @@ def get_result(functionNumber, value, parameters):
 
 #
 
+# xValues = list of values in interval (0,1)
+# yValues = list of values in interval [0,1]
 def get_best_equation(xValues, yValues):
 
     working_equations = []
