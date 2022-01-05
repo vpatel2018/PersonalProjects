@@ -43,25 +43,47 @@ def lc_model8(x, m, a):
 #
 
 # data point is noisy if > 50 % of points ahead of it are below it
+# data point is noisy if > 50 % of points behind of it are above it
 # noisy data points must be ignored to make forecasting easier
-def data_is_noise(pairs, index):
+def data_is_noise(pairs, index, sign):
     
-    numPtsBelow = 0
-    numPtsAboveSame = 0
-    
-    for x in range(index + 1, len(pairs)):
-        if(pairs[x][1] < pairs[index][1]):
-           numPtsBelow += 1
-        else:
-           numPtsAboveSame += 1   
+    if(sign == 'ahead'):
+        
+        numPtsBelow = 0
+        numPtsAboveSame = 0
+        
+        for x in range(index + 1, len(pairs)):
+            if(pairs[x][1] < pairs[index][1]):
+               numPtsBelow += 1
+            else:
+               numPtsAboveSame += 1   
+            #
         #
+        
+        return numPtsBelow > numPtsAboveSame
+        
+    elif(sign == 'behind'):
+        
+        numPtsAbove = 0
+        numPtsBelowSame = 0
+
+        for x in range(0, index):
+            if(pairs[x][1] > pairs[index][1]):
+               numPtsAbove += 1 
+            else:
+               numPtsBelowSame += 1
+            #
+        #
+        
+        return numPtsAbove > numPtsBelowSame
+           
     #
     
-    return numPtsBelow > numPtsAboveSame
+    return None
     
 #
 
-def get_important_points(xVals, yVals):
+def remove_noise(xVals, yVals):
     
     pairs = [[xVals[x], yVals[x]] for x in range(0, len(xVals))]
     lastIndex = len(pairs) - 1
@@ -69,7 +91,7 @@ def get_important_points(xVals, yVals):
     newYVals = []
     
     for p in range(0, lastIndex):
-        isNoisy = data_is_noise(pairs, p)
+        isNoisy = data_is_noise(pairs, p, 'ahead')
         if(isNoisy == False):
            newXVals.append(pairs[p][0])
            newYVals.append(pairs[p][1])
@@ -79,11 +101,37 @@ def get_important_points(xVals, yVals):
     newXVals.append(pairs[lastIndex][0])
     newYVals.append(pairs[lastIndex][1])
     
+    if(len(newXVals) == 1 and len(newYVals) == 1):
+       return [newXVals, newYVals]
+    #
+    
+    pairs = [[newXVals[x], newYVals[x]] for x in range(0, len(newXVals))]
+    lastIndex = len(pairs) - 1
+    brandNewXs = []
+    brandNewYs = []
+    
+    for p in range(1, lastIndex + 1):
+        isNoisy = data_is_noise(pairs, p, 'behind')
+        if(isNoisy == False):
+           brandNewXs.append(pairs[p][0])
+           brandNewYs.append(pairs[p][1])
+        #
+    #
+    
+    brandNewXs.append(pairs[0][0])
+    brandNewYs.append(pairs[0][1])
+    
+    return [brandNewXs, brandNewYs]
+      
+#
+
+def get_important_points(xVals, yVals):
+    
     meaningfulPairs = [[0,-1]]
     
-    for x in range(0, len(newYVals)):
-        if(newYVals[x] > meaningfulPairs[len(meaningfulPairs) - 1][1]):
-           array = [newXVals[x], newYVals[x]]
+    for x in range(0, len(yVals)):
+        if(yVals[x] > meaningfulPairs[len(meaningfulPairs) - 1][1]):
+           array = [xVals[x], yVals[x]]
            meaningfulPairs.append(array)
         #
     #
@@ -258,9 +306,13 @@ def get_result(functionNumber, value, parameters):
 
 #
 
-# xValues = list of values in interval (0,1)
-# yValues = list of values in interval [0,1]
-def get_best_equation(xValues, yValues):
+# xs = list of values in interval (0,1)
+# ys = list of values in interval [0,1]
+def get_best_equation(xs, ys):
+    
+    new_points = remove_noise(xs, ys)
+    xValues = new_points[0]
+    yValues = new_points[1]
 
     working_equations = []
     errors = []
@@ -320,7 +372,7 @@ def get_best_equation(xValues, yValues):
 #
 
 # inputVal = some number in interval (0,1)
-# best_equation = output of get_best_equation(xValues, yValues)
+# best_equation = output of get_best_equation(xs, ys)
 def evaluate(inputVal, best_equation):
 
     functionNumber = int(best_equation[1][len(best_equation[1]) - 1])
